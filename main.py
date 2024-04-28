@@ -6,6 +6,8 @@ from flask_login import LoginManager, current_user, login_required, login_user, 
 from forms.login import LoginForm
 from forms.new import NewsForm
 from forms.user import RegisterForm
+from data.recipes import Recipes
+from forms.recipe import RecipesForm
 
 
 app = Flask(__name__)
@@ -23,11 +25,10 @@ def main():
 def index():
     db_sess = db_session.create_session()
     if current_user.is_authenticated:
-        news = db_sess.query(News).filter(
-            (News.user == current_user) | (News.is_private != True))
+        recipes = db_sess.query(Recipes).filter((Recipes.user == current_user) | (Recipes.is_private != True))
     else:
-        news = db_sess.query(News).filter(News.is_private != True)
-    return render_template("index.html", news=news)
+        recipes = db_sess.query(Recipes).filter(Recipes.is_private != True)
+    return render_template("index.html", recipes=recipes)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -75,6 +76,25 @@ def reqister():
         db_sess.commit()
         return redirect('/login')
     return render_template('register.html', title='Регистрация', form=form)
+
+
+@app.route('/recipes',  methods=['GET', 'POST'])
+@login_required
+def add_recipes():
+    form = RecipesForm()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        recipes = Recipes()
+        recipes.title = form.title.data
+        recipes.image = form.image.data
+        print(recipes.image)
+        recipes.content = form.content.data
+        recipes.is_private = form.is_private.data
+        current_user.news.append(recipes)
+        db_sess.merge(current_user)
+        db_sess.commit()
+        return redirect('/')
+    return render_template('recipes.html', title='Добавление рецепта', form=form)
 
 
 @app.route('/news',  methods=['GET', 'POST'])
