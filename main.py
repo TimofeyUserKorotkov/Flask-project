@@ -9,11 +9,17 @@ from forms.user import RegisterForm
 from data.recipes import Recipes
 from forms.recipe import RecipesForm
 
+# from flask_uploads import UploadSet, IMAGES, configure_uploads
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '12345678900987654321'
+# app.config['UPLOADED_IMAGES_DEST'] = 'uploads'
 login_manager = LoginManager()
 login_manager.init_app(app)
+
+# imgs = UploadSet('imgs', IMAGES)
+# configure_uploads(app, imgs)
 
 
 def main():
@@ -21,7 +27,7 @@ def main():
     app.run()
 
 
-@app.route("/")
+@app.route("/", methods=['GET', 'POST'])
 def index():
     db_sess = db_session.create_session()
     if current_user.is_authenticated:
@@ -78,23 +84,100 @@ def reqister():
     return render_template('register.html', title='Регистрация', form=form)
 
 
+# def get_file(filename):
+    # return send_from_directory()
+
 @app.route('/recipes',  methods=['GET', 'POST'])
 @login_required
 def add_recipes():
     form = RecipesForm()
     if form.validate_on_submit():
+    # if request.method == 'POST':
         db_sess = db_session.create_session()
         recipes = Recipes()
         recipes.title = form.title.data
         recipes.image = form.image.data
-        print(recipes.image)
+        
+        file = request.files['file']
+        recipes.image_data = file.read()
+
+        print(f'OK -------------------> {recipes.image_data}')
         recipes.content = form.content.data
         recipes.is_private = form.is_private.data
-        current_user.news.append(recipes)
+        current_user.recipes.append(recipes)
         db_sess.merge(current_user)
         db_sess.commit()
-        return redirect('/')
+        # return redirect('/')
+        return f'{recipes.title, recipes.content, recipes.is_private, recipes.image_data}'
     return render_template('recipes.html', title='Добавление рецепта', form=form)
+
+# # @app.route('/recipes',  methods=['GET', 'POST'])
+# @login_required
+# def add_recipes():
+#     form = RecipesForm()
+#     # if request.method == 'post':
+#     if form.validate_on_submit():
+#         db_sess = db_session.create_session()
+#         recipes = Recipes()
+#         recipes.title = form.title.data
+#         recipes.image = form.image.data
+#         print(form.image, form.image.data, form.image)
+        
+#         # file = request.files['file']
+#         # recipes.image_data = file.read()
+
+#         print(f'OK -------------------> {recipes.image_data}')
+#         # recipes.image_data = 
+#         # recipes.image_url = url_for(
+#         #     'send_from_directory', directory=app.config['UPLOADED_IMAGES_DEST'], path=recipes.image)
+#         recipes.content = form.content.data
+#         recipes.is_private = form.is_private.data
+#         current_user.recipes.append(recipes)
+#         db_sess.merge(current_user)
+#         db_sess.commit()
+#         return redirect('/')
+#     return render_template('recipes.html', title='Добавление рецепта', form=form)
+
+
+
+
+
+
+
+
+# @app.route('/',  methods=['GET', 'POST'])
+# @login_required
+# def add_recipes():
+#     form = RecipesForm()
+#     if request.method == 'POST':
+#     # if form.validate_on_submit():
+#         db_sess = db_session.create_session()
+#         recipes = Recipes()
+#         # recipes.title = form.title.data
+#         # recipes.image = form.image.data
+#         # print(form.image, form.image.data, form.image)
+        
+#         file = request.files['file']
+#         recipes.image_data = file.read()
+
+#         print(f'OK -------------------> {recipes.image_data}')
+#         # # recipes.image_data = 
+#         # # recipes.image_url = url_for(
+#         # #     'send_from_directory', directory=app.config['UPLOADED_IMAGES_DEST'], path=recipes.image)
+#         # recipes.content = form.content.data
+#         # recipes.is_private = form.is_private.data
+#         # current_user.recipes.append(recipes)
+#         # db_sess.merge(current_user)
+#         # db_sess.commit()
+#         # return redirect('/')
+#         return f'=================={recipes.image_data}'
+#     return render_template('recipes.html', title='Добавление рецепта', form=form)
+
+
+
+
+
+
 
 
 @app.route('/news',  methods=['GET', 'POST'])

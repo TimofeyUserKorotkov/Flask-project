@@ -8,7 +8,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 class User(SqlAlchemyBase, UserMixin):
     __tablename__ = 'users'
-    news = orm.relationship("Recipes", back_populates='user')
+    recipes = orm.relationship("Recipes", back_populates='user')
     id = sqlalchemy.Column(sqlalchemy.Integer,
                            primary_key=True, autoincrement=True)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
