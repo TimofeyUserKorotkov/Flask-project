@@ -1,0 +1,26 @@
+{% extends "base.html" %} 
+{% block content %}
+<body>
+    <div class="container col-bg" style="padding: 1%">
+    <h2>Ваши рецепты</h2>
+    <a href="recipes" class="btn btn-secondary">Добавить рецепт</a><br><br>
+    {% for item in recipes%}
+    <div class="col-md6 border rounded">
+        <h2>{{ item.title }}</h2>
+        <img src="{{ item.image }}" width="600" height="338">
+        <div>
+            Автор - вы, Дата написания - {{ item.created_date }}
+        </div>
+        <div>
+            <a href="/news/{{ item.id }}" class="btn btn-warning">
+            Изменить
+        </a>
+            <a href="/news_delete/{{ item.id }}" class="btn btn-danger">
+            Удалить
+        </a>
+        </div>
+    </div>
+    {% endfor %}
+    </div>
+{% endblock %}
+</body>

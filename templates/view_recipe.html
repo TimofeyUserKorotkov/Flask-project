@@ -1,0 +1,17 @@
+{% extends "base.html" %} 
+{% block content %}
+<body>
+    <div class="container col-bg" style="padding: 1%">
+    <div class="col-md6 border rounded">
+        <h2>{{ recipe.title }}</h2>
+        <p>Категория - {{ recipe.category }}</p>
+        <img src="{{ recipe.image }}" width="800" height="450">
+        <h5>Рецепт<br></h5><p>{{ recipe.content }}</p>
+        <em><div>
+            Автор - {{ recipe.user.name }}, Дата написания - {{ recipe.created_date }}
+        </div></em>
+        </div>
+    </div>
+    </div>
+{% endblock %}
+</body>
