@@ -1,11 +1,11 @@
 import os
 from flask import Flask, abort, flash, redirect, render_template, request, url_for
 from data import db_session
-from data.news import News
+# from data.news import News
 from data.users import User
 from flask_login import LoginManager, current_user, login_required, login_user, logout_user
 from forms.login import LoginForm
-from forms.new import NewsForm
+# from forms.new import NewsForm
 from forms.user import RegisterForm
 from data.recipes import Recipes
 from forms.recipe import RecipesForm
