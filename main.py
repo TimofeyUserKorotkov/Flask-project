@@ -26,7 +26,7 @@ login_manager.init_app(app)
 
 
 def main():
-    db_session.global_init("db/blogs.sqlite")
+    db_session.global_init("db/recipes.sqlite")
     app.run()
 
 
@@ -54,7 +54,7 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-        
+
         user = db_sess.query(User).filter(
             User.email == form.email.data
             ).first()
