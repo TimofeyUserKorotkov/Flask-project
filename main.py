@@ -124,11 +124,9 @@ def add_recipes():
 
 @app.route('/view/<int:id>', methods=['GET'])
 def view_recipe(id):
-    # form = RecipesForm()
     if request.method == "GET":
         db_sess = db_session.create_session()
-        recipe = db_sess.query(Recipes).filter(Recipes.id == id,
-                                          Recipes.user == current_user
+        recipe = db_sess.query(Recipes).filter(Recipes.id == id
                                           ).first()
         if not recipe:
             abort(404)
@@ -136,71 +134,111 @@ def view_recipe(id):
                            title='Просмотр рецепта',
                            recipe=recipe)
 
-# @app.route('/news',  methods=['GET', 'POST'])
-# @login_required
-# def add_news():
-#     form = NewsForm()
-#     if form.validate_on_submit():
-#         db_sess = db_session.create_session()
-#         news = News()
-#         news.title = form.title.data
-#         news.content = form.content.data
-#         news.is_private = form.is_private.data
-#         current_user.news.append(news)
-#         db_sess.merge(current_user)
-#         db_sess.commit()
-#         return redirect('/')
-#     return render_template('news.html', title='Добавление новости', 
-#                            form=form)
+
+@app.route('/recipes/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_recipe(id):
+    form = RecipesForm()
+    if request.method == "GET":
+        db_sess = db_session.create_session()
+        recipe = db_sess.query(Recipes).filter(Recipes.id == id,
+                                          Recipes.user == current_user
+                                          ).first()
+        if recipe:
+            form.title.data = recipe.title
+            form.content.data = recipe.content
+            form.category.data = recipe.category
+            form.is_private.data = recipe.is_private
+        else:
+            abort(404)
+    if request.method == 'POST':
+        db_sess = db_session.create_session()
+        recipe = db_sess.query(Recipes).filter(Recipes.id == id,
+                                          Recipes.user == current_user
+                                          ).first()
+        if recipe:
+            recipe.title = form.title.data
+            recipe.content = form.content.data
+            recipe.category = form.category.data
+            if 'file' not in request.files:
+                flash('No file part')
+            file = request.files['file']
+            if file.filename == '':
+                flash('No selected file')
+            if file:
+                filename = secure_filename(file.filename)
+                src = '../' + '/'.join([app.config['UPLOADED_IMAGES_FOLDER'], filename])
+                print(src)
+                recipe.image = src
+                print(recipe.image)
+                file.save(os.path.join(app.config['UPLOADED_IMAGES_FOLDER'], filename))
+            recipe.is_private = form.is_private.data
+            db_sess.commit()
+            return redirect('/')
+        else:
+            abort(404)
+    return render_template('recipes.html',
+                           title='Редактирование рецепта',
+                           form=form)
 
 
-# @app.route('/news/<int:id>', methods=['GET', 'POST'])
-# @login_required
-# def edit_news(id):
-#     form = NewsForm()
-#     if request.method == "GET":
-#         db_sess = db_session.create_session()
-#         news = db_sess.query(News).filter(News.id == id,
-#                                           News.user == current_user
-#                                           ).first()
-#         if news:
-#             form.title.data = news.title
-#             form.content.data = news.content
-#             form.is_private.data = news.is_private
-#         else:
-#             abort(404)
-#     if form.validate_on_submit():
-#         db_sess = db_session.create_session()
-#         news = db_sess.query(News).filter(News.id == id,
-#                                           News.user == current_user
-#                                           ).first()
-#         if news:
-#             news.title = form.title.data
-#             news.content = form.content.data
-#             news.is_private = form.is_private.data
-#             db_sess.commit()
-#             return redirect('/')
-#         else:
-#             abort(404)
-#     return render_template('news.html',
-#                            title='Редактирование новости',
-#                            form=form
-#                            )
+@app.route('/recipes_delete/<int:id>', methods=['GET', 'POST'])
+@login_required
+def recipe_delete(id):
+    db_sess = db_session.create_session()
+    recipe = db_sess.query(Recipes).filter(Recipes.id == id,
+                                      Recipes.user == current_user
+                                      ).first()
+    if recipe:
+        db_sess.delete(recipe)
+        db_sess.commit()
+    else:
+        abort(404)
+    return redirect('/profile')
 
 
-# @app.route('/news_delete/<int:id>', methods=['GET', 'POST'])
-# @login_required
-# def news_delete(id):
-#     db_sess = db_session.create_session()
-#     news = db_sess.query(News).filter(News.id == id,
-#                                       News.user == current_user
-#                                       ).first()
-#     if news:
-#         db_sess.delete(news)
-#         db_sess.commit()
-#     else:
-#         abort(404)
-#     return redirect('/')
+@app.route("/breakfast", methods=['GET'])
+def breakfast():
+    db_sess = db_session.create_session()
+    if current_user.is_authenticated:
+        recipes = db_sess.query(Recipes).filter(
+            ((Recipes.user == current_user) | (Recipes.is_private != True)), Recipes.category == 'Завтрак')
+    else:
+        recipes = db_sess.query(Recipes).filter(Recipes.is_private != True, Recipes.category == 'Завтрак')
+    return render_template("index.html", recipes=recipes)
+
+
+@app.route("/lunch", methods=['GET'])
+def lunch():
+    db_sess = db_session.create_session()
+    if current_user.is_authenticated:
+        recipes = db_sess.query(Recipes).filter(
+            ((Recipes.user == current_user) | (Recipes.is_private != True)), Recipes.category == 'Обед')
+    else:
+        recipes = db_sess.query(Recipes).filter(Recipes.is_private != True, Recipes.category == 'Обед')
+    return render_template("index.html", recipes=recipes)
+
+
+@app.route("/dinner", methods=['GET'])
+def dinner():
+    db_sess = db_session.create_session()
+    if current_user.is_authenticated:
+        recipes = db_sess.query(Recipes).filter(
+            ((Recipes.user == current_user) | (Recipes.is_private != True)), Recipes.category == 'Ужин')
+    else:
+        recipes = db_sess.query(Recipes).filter(Recipes.is_private != True, Recipes.category == 'Ужин')
+    return render_template("index.html", recipes=recipes)
+
+
+@app.route("/snack", methods=['GET'])
+def snack():
+    db_sess = db_session.create_session()
+    if current_user.is_authenticated:
+        recipes = db_sess.query(Recipes).filter(
+            ((Recipes.user == current_user) | (Recipes.is_private != True)), Recipes.category == 'Перекус')
+    else:
+        recipes = db_sess.query(Recipes).filter(Recipes.is_private != True, Recipes.category == 'Перекус')
+    return render_template("index.html", recipes=recipes)
 
 
 @login_manager.user_loader
